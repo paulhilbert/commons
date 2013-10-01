@@ -19,7 +19,7 @@ struct ColorConversion {
 };
 
 //template <class Scalar>
-RGB ColorConversion::hsv2rgb(HSV hsv) {
+inline RGB ColorConversion::hsv2rgb(HSV hsv) {
 	float a = hsv[0] / (M_PI / 3.0);
 	float c = std::floor(a);
 	float f = a - c;
@@ -47,7 +47,7 @@ RGB ColorConversion::hsv2rgb(HSV hsv) {
 }
 
 //template <class Scalar>
-RGBA ColorConversion::hsva2rgba(HSVA hsva) {
+inline RGBA ColorConversion::hsva2rgba(HSVA hsva) {
 	float a = hsva[0] / (M_PI / 3.0);
 	float c = std::floor(a);
 	float f = a - c;
@@ -75,7 +75,7 @@ RGBA ColorConversion::hsva2rgba(HSVA hsva) {
 }
 
 //template <class Scalar>
-HSV ColorConversion::rgb2hsv(RGB rgb) {
+inline HSV ColorConversion::rgb2hsv(RGB rgb) {
 	float min = std::min(std::min(rgb[0], rgb[1]), rgb[2]);
 	float max = std::max(std::max(rgb[0], rgb[1]), rgb[2]);
 
@@ -106,7 +106,7 @@ HSV ColorConversion::rgb2hsv(RGB rgb) {
 }
 
 //template <class Scalar>
-HSVA ColorConversion::rgba2hsva(RGBA rgba) {
+inline HSVA ColorConversion::rgba2hsva(RGBA rgba) {
 	float min = std::min(std::min(rgba[0], rgba[1]), rgba[2]);
 	float max = std::max(std::max(rgba[0], rgba[1]), rgba[2]);
 
