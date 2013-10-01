@@ -11,16 +11,16 @@ template <class ColorType, class Scalar>
 using ColorMap = std::function<ColorType (Scalar)>;
 
 template <class Scalar>
-ColorMap<RGB<Scalar>, Scalar> rgbJet();
+ColorMap<RGB, Scalar> rgbJet();
 
 template <class Scalar>
-ColorMap<RGBA<Scalar>,Scalar> rgbaJet();
+ColorMap<RGBA,Scalar> rgbaJet();
 
 template <class Scalar>
-ColorMap<HSV<Scalar>, Scalar> hsvJet();
+ColorMap<HSV, Scalar> hsvJet();
 
 template <class Scalar>
-ColorMap<HSVA<Scalar>, Scalar> hsvaJet();
+ColorMap<HSVA, Scalar> hsvaJet();
 
 #include "ColorMap.inl"
 

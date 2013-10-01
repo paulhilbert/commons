@@ -8,32 +8,32 @@ namespace Vis {
 namespace Colors {
 
 // rgb colors
-inline RGB<float>  rgbRed       () { return RGB<float> (1.f, 0.f, 0.f); }
-inline RGB<float>  rgbGreen     () { return RGB<float> (0.f, 1.f, 0.f); }
-inline RGB<float>  rgbBlue      () { return RGB<float> (0.f, 0.f, 1.f); }
-inline RGB<float>  rgbYellow    () { return RGB<float> (1.f, 1.f, 0.f); }
-inline RGB<float>  rgbCyan      () { return RGB<float> (0.f, 1.f, 1.f); }
-inline RGB<float>  rgbMagenta   () { return RGB<float> (1.f, 0.f, 1.f); }
-inline RGB<float>  rgbWhite     () { return RGB<float> (1.f, 1.f, 1.f); }
-inline RGB<float>  rgbBlack     () { return RGB<float> (0.f, 0.f, 0.f); }
-inline RGB<float>  rgbGrey      () { return RGB<float> (0.5f, 0.5f, 0.5f); }
-inline RGB<float>  rgbLightGrey () { return RGB<float> (0.7f, 0.7f, 0.7f); }
-inline RGB<float>  rgbDarkGrey  () { return RGB<float> (0.3f, 0.3f, 0.3f); }
+inline RGB  rgbRed       () { return RGB (1.f, 0.f, 0.f); }
+inline RGB  rgbGreen     () { return RGB (0.f, 1.f, 0.f); }
+inline RGB  rgbBlue      () { return RGB (0.f, 0.f, 1.f); }
+inline RGB  rgbYellow    () { return RGB (1.f, 1.f, 0.f); }
+inline RGB  rgbCyan      () { return RGB (0.f, 1.f, 1.f); }
+inline RGB  rgbMagenta   () { return RGB (1.f, 0.f, 1.f); }
+inline RGB  rgbWhite     () { return RGB (1.f, 1.f, 1.f); }
+inline RGB  rgbBlack     () { return RGB (0.f, 0.f, 0.f); }
+inline RGB  rgbGrey      () { return RGB (0.5f, 0.5f, 0.5f); }
+inline RGB  rgbLightGrey () { return RGB (0.7f, 0.7f, 0.7f); }
+inline RGB  rgbDarkGrey  () { return RGB (0.3f, 0.3f, 0.3f); }
 
 // rgba colors
-inline RGBA<float> rgbaRed       (float alpha = 1.f) { return RGBA<float>(1.f, 0.f, 0.f, alpha); }
-inline RGBA<float> rgbaGreen     (float alpha = 1.f) { return RGBA<float>(0.f, 1.f, 0.f, alpha); }
-inline RGBA<float> rgbaBlue      (float alpha = 1.f) { return RGBA<float>(0.f, 0.f, 1.f, alpha); }
-inline RGBA<float> rgbaYellow    (float alpha = 1.f) { return RGBA<float>(1.f, 1.f, 0.f, alpha); }
-inline RGBA<float> rgbaCyan      (float alpha = 1.f) { return RGBA<float>(0.f, 1.f, 1.f, alpha); }
-inline RGBA<float> rgbaMagenta   (float alpha = 1.f) { return RGBA<float>(1.f, 0.f, 1.f, alpha); }
-inline RGBA<float> rgbaWhite     (float alpha = 1.f) { return RGBA<float>(1.f, 1.f, 1.f, alpha); }
-inline RGBA<float> rgbaBlack     (float alpha = 1.f) { return RGBA<float>(0.f, 0.f, 0.f, alpha); }
-inline RGBA<float> rgbaGrey      (float alpha = 1.f) { return RGBA<float>(0.5f, 0.5f, 0.5f, alpha); }
-inline RGBA<float> rgbaLightGrey (float alpha = 1.f) { return RGBA<float>(0.7f, 0.7f, 0.7f, alpha); }
-inline RGBA<float> rgbaDarkGrey  (float alpha = 1.f) { return RGBA<float>(0.3f, 0.3f, 0.3f, alpha); }
+inline RGBA rgbaRed       (float alpha = 1.f) { return RGBA(1.f, 0.f, 0.f, alpha); }
+inline RGBA rgbaGreen     (float alpha = 1.f) { return RGBA(0.f, 1.f, 0.f, alpha); }
+inline RGBA rgbaBlue      (float alpha = 1.f) { return RGBA(0.f, 0.f, 1.f, alpha); }
+inline RGBA rgbaYellow    (float alpha = 1.f) { return RGBA(1.f, 1.f, 0.f, alpha); }
+inline RGBA rgbaCyan      (float alpha = 1.f) { return RGBA(0.f, 1.f, 1.f, alpha); }
+inline RGBA rgbaMagenta   (float alpha = 1.f) { return RGBA(1.f, 0.f, 1.f, alpha); }
+inline RGBA rgbaWhite     (float alpha = 1.f) { return RGBA(1.f, 1.f, 1.f, alpha); }
+inline RGBA rgbaBlack     (float alpha = 1.f) { return RGBA(0.f, 0.f, 0.f, alpha); }
+inline RGBA rgbaGrey      (float alpha = 1.f) { return RGBA(0.5f, 0.5f, 0.5f, alpha); }
+inline RGBA rgbaLightGrey (float alpha = 1.f) { return RGBA(0.7f, 0.7f, 0.7f, alpha); }
+inline RGBA rgbaDarkGrey  (float alpha = 1.f) { return RGBA(0.3f, 0.3f, 0.3f, alpha); }
 
-inline RGBA<float> rgbaInvisible ()                  { return RGBA<float>(0.f, 0.f, 0.f, 0.f);; }
+inline RGBA rgbaInvisible ()                  { return RGBA(0.f, 0.f, 0.f, 0.f);; }
 
 
 
