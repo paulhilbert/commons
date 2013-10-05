@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+
 #include <boost/variant.hpp>
 
 #include <pcl/point_cloud.h>
@@ -10,6 +11,15 @@
 #include <pcl/search/pcl_search.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/principal_curvatures.h>
+
+#include <Eigen/Dense>
+using Eigen::Vector3f;
+using Eigen::Vector4f;
+using Eigen::Matrix3f;
+using Eigen::Matrix4f;
+
+#include <Algorithm/Sets.h>
+#include <IO/AbstractProgressBar.h>
 
 #include "Quadric.h"
 
@@ -39,8 +49,12 @@ class PCLTools {
 		typedef int                          Size;
 		typedef std::vector<int>             IdxSet;
 
+		typedef IO::AbstractProgressBar      PBar;
+
 	public:
 		PCLTools() = delete;
+
+		//static typename CloudType::Ptr loadPointCloud(fs::path cloudPath, std::string upAxis, double scale);
 
 		static typename QuadricType::Ptr fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NQ& nq, Eigen::Matrix<float,3,3>* localBase = nullptr);
 		static float meanCurvature(typename CloudType::Ptr cloud, const NQ& nq, const PointT& pos, const IdxSet& subset = IdxSet());
@@ -48,7 +62,7 @@ class PCLTools {
 		static IdxSet getNeighborIndices(typename CloudType::ConstPtr cloud, const PointT& pos, const NQ& nq);
 
 	protected:
-		static Vector3f localQuadricParams(typename CloudType::ConstPtr cloud, NeighborQuery<PointT>& nq, const PointT& pos, const Eigen::Matrix3f& localBase);
+		static Eigen::Vector3f localQuadricParams(typename CloudType::ConstPtr cloud, NeighborQuery<PointT>& nq, const PointT& pos, const Eigen::Matrix3f& localBase);
 		static IdxSet cloudIndices(typename CloudType::ConstPtr cloud);
 
 		class NQSearchVisitor : public boost::static_visitor<> {

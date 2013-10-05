@@ -1,3 +1,59 @@
+/*
+template <class PointT>
+typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::path cloudPath, std::string upAxis, double scale) {
+	if (cloudPath.extension() != ".pcd") return CloudType::Ptr();
+	CloudType::Ptr cloud(new CloudType());
+	if (pcl::io::loadPCDFile<Point>(cloudPath.string(), *cloud) == -1) {
+		return CloudType::Ptr();
+	}
+
+	if (scale == 1.f && upAxis == "Z") return;
+	// compute center
+	float cx = 0.f, cy = 0.f, cz = 0.f;	int i=0;
+	std::for_each(cloud->begin(), cloud->end(), [&] (Point& p) { 
+		cx *= i; cy *= i; cz *= i++;
+		cx += p.x; cy += p.y; cz += p.z;
+		cx /= static_cast<float>(i); cy /= static_cast<float>(i); cz /= static_cast<float>(i);
+	});
+
+	Eigen::Matrix4f tC;
+	tC << 1.f, 0.f, 0.f, -cx,
+	      0.f, 1.f, 0.f, -cy,
+	      0.f, 0.f, 1.f, -cz,
+			0.f, 0.f, 0.f, 1.f;
+
+	//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { p.x -= cx; p.y -= cy; p.z -= cz; });
+	Eigen::Matrix4f tR;
+	if (upAxis == "Y") {
+		tR << 1.f, 0.f,  0.f, 0.f,
+			   0.f, 0.f, -1.f, 0.f,
+				0.f, 1.f,  0.f, 0.f,
+				0.f, 0.f,  0.f, 1.f;
+		//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { float tmp = p.y; p.y = -p.z; p.z = tmp; });
+	} else if (upAxis == "X") {
+		tR << 0.f, 0.f, -1.f, 0.f,
+			   0.f, 1.f,  0.f, 0.f,
+				1.f, 0.f,  0.f, 0.f,
+				0.f, 0.f,  0.f, 1.f;
+		//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { float tmp = p.x; p.x = -p.z; p.z = tmp; });
+	} else if (upAxis == "Z") {
+		tR = Eigen::Matrix4f::Identity();
+	} else {
+		Log::warn("Unrecognized mesh orientation given, assuming Z axis.");
+		return;
+	}
+
+	pcl::transformPointCloudWithNormals(*cloud, *cloud, tR*tC);
+
+	if (scale != 1.f) {
+		Eigen::Matrix4f tS = Eigen::Matrix4f::Identity();
+		tS.block<3,3>(0,0) *= scale;
+		pcl::transformPointCloud(*cloud, *cloud, tS);
+	}
+	return cloud;
+}
+*/
+
 template <class PointT>
 typename PCLTools<PointT>::QuadricType::Ptr PCLTools<PointT>::fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NeighborQuery<PointT>& nq, Eigen::Matrix<float,3,3>* localBase) {
 	Matrix3f transform;
@@ -29,7 +85,7 @@ float PCLTools<PointT>::meanCurvature(typename CloudType::Ptr cloud, const NQ& n
 		Algorithm::remove(neighbors, [&](int idx) { return !std::binary_search(subset.begin(), subset.end(), idx); });
 	}
 	if (!neighbors.size()) {
-		Log::warn("Empty neighbor query");
+		std::cout << "Empty neighbor query" << "\n";
 		return 0.f;
 	}
 
