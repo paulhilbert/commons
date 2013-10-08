@@ -117,6 +117,13 @@ typename PCLTools<PointT>::IdxSet PCLTools<PointT>::getNeighborIndices(typename 
 }
 
 template <class PointT>
+float PCLTools<PointT>::diameter(typename CloudType::ConstPtr cloud) {
+	Eigen::AlignedBox<float,3> bb;
+	for (const auto& p : *cloud) bb.extend(p.getVector3fMap());
+	return bb.diagonal().norm();
+}
+
+template <class PointT>
 Vector3f PCLTools<PointT>::localQuadricParams(typename CloudType::ConstPtr cloud, NeighborQuery<PointT>& nq, const PointT& pos, const Eigen::Matrix3f& localBase) {
 	auto neighbors = getNeighborIndices(cloud, pos, nq);
 	Vector3f vec = pos.getVector3fMap();

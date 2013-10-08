@@ -61,6 +61,8 @@ class PCLTools {
 		static Points getNeighbors(typename CloudType::ConstPtr cloud, const PointT& pos, const NQ& nq);
 		static IdxSet getNeighborIndices(typename CloudType::ConstPtr cloud, const PointT& pos, const NQ& nq);
 
+		static float diameter(typename CloudType::ConstPtr cloud);
+
 	protected:
 		static Eigen::Vector3f localQuadricParams(typename CloudType::ConstPtr cloud, NeighborQuery<PointT>& nq, const PointT& pos, const Eigen::Matrix3f& localBase);
 		static IdxSet cloudIndices(typename CloudType::ConstPtr cloud);
