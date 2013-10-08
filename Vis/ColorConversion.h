@@ -20,7 +20,7 @@ struct ColorConversion {
 
 //template <class Scalar>
 inline RGB ColorConversion::hsv2rgb(HSV hsv) {
-	float a = hsv[0] / (M_PI / 3.0);
+	float a = hsv[0] / (static_cast<float>(M_PI) / 3.f);
 	float c = std::floor(a);
 	float f = a - c;
 	float p = hsv[2] * (1-hsv[1]);
@@ -48,7 +48,7 @@ inline RGB ColorConversion::hsv2rgb(HSV hsv) {
 
 //template <class Scalar>
 inline RGBA ColorConversion::hsva2rgba(HSVA hsva) {
-	float a = hsva[0] / (M_PI / 3.0);
+	float a = hsva[0] / (static_cast<float>(M_PI) / 3.f);
 	float c = std::floor(a);
 	float f = a - c;
 	float p = hsva[2] * (1-hsva[1]);
@@ -83,14 +83,14 @@ inline HSV ColorConversion::rgb2hsv(RGB rgb) {
 	if (min == max) {
 		h = 0.0;
 	} else if (max == rgb[0]) {
-		h = M_PI / 3.0 * ((rgb[1]-rgb[2]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * ((rgb[1]-rgb[2]) / (max-min));
 	} else if (max == rgb[1]) {
-		h = M_PI / 3.0 * (2.0 + (rgb[2]-rgb[0]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * (2.f + (rgb[2]-rgb[0]) / (max-min));
 	} else {
-		h = M_PI / 3.0 * (4.0 + (rgb[0]-rgb[1]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * (4.f + (rgb[0]-rgb[1]) / (max-min));
 	}
 	if (h < 0.0) {
-		h += M_PI * 2.0;
+		h += static_cast<float>(M_PI) * 2.f;
 	}
 
 	float s;
@@ -114,14 +114,14 @@ inline HSVA ColorConversion::rgba2hsva(RGBA rgba) {
 	if (min == max) {
 		h = 0.0;
 	} else if (max == rgba[0]) {
-		h = M_PI / 3.0 * ((rgba[1]-rgba[2]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * ((rgba[1]-rgba[2]) / (max-min));
 	} else if (max == rgba[1]) {
-		h = M_PI / 3.0 * (2.0 + (rgba[2]-rgba[0]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * (2.f + (rgba[2]-rgba[0]) / (max-min));
 	} else {
-		h = M_PI / 3.0 * (4.0 + (rgba[0]-rgba[1]) / (max-min));
+		h = static_cast<float>(M_PI) / 3.f * (4.f + (rgba[0]-rgba[1]) / (max-min));
 	}
 	if (h < 0.0) {
-		h += static_cast<float>(M_PI * 2.0);
+		h += static_cast<float>(M_PI) * 2.f;
 	}
 
 	float s;

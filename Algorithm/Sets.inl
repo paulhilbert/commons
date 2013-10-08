@@ -80,6 +80,38 @@ inline void crop(Container& container, const IndexSet& indices) {
 }
 
 template <class Container>
+Container setUnion(const Container& container0, const Container& container1) {
+	Container result(container0.size()+container1.size());
+	auto newEnd = std::set_union(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
+	result.resize(std::distance(result.begin(), newEnd));
+	return result;
+}
+
+template <class Container>
+Container setIntersection(const Container& container0, const Container& container1) {
+	Container result(container0.size());
+	auto newEnd = std::set_intersection(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
+	result.resize(std::distance(result.begin(), newEnd));
+	return result;
+}
+
+template <class Container>
+Container setDifference(const Container& container0, const Container& container1) {
+	Container result(container0.size());
+	auto newEnd = std::set_difference(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
+	result.resize(std::distance(result.begin(), newEnd));
+	return result;
+}
+
+template <class Container>
+Container setSymmetricDifference(const Container& container0, const Container& container1) {
+	Container result(container0.size()+container1.size());
+	auto newEnd = std::set_symmetric_difference(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
+	result.resize(std::distance(result.begin(), newEnd));
+	return result;
+}
+
+template <class Container>
 inline void uniqueSubset(Container& container) {
 	std::sort(container.begin(), container.end());
 	auto newEnd = std::unique(container.begin(), container.end());

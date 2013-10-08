@@ -31,6 +31,18 @@ template <class Container, class IndexSet>
 void crop(Container& container, const IndexSet& indices);
 
 template <class Container>
+Container setUnion(const Container& container0, const Container& container1);
+
+template <class Container>
+Container setIntersection(const Container& container0, const Container& container1);
+
+template <class Container>
+Container setDifference(const Container& container0, const Container& container1);
+
+template <class Container>
+Container setSymmetricDifference(const Container& container0, const Container& container1);
+
+template <class Container>
 void uniqueSubset(Container& container);
 
 template <class Container>

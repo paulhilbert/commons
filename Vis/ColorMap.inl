@@ -1,7 +1,7 @@
 template <class Scalar>
-ColorMap<RGB, Scalar> rgbJet() {
-	ColorMap<RGBA, Scalar> rgbaMap = rgbaJet<Scalar>();
-	ColorMap<RGB, Scalar> map = [=] (Scalar value) {
+std::function<RGB (Scalar)> rgbJet() {
+	std::function<RGBA (Scalar)> rgbaMap = rgbaJet<Scalar>();
+	std::function<RGB (Scalar)> map = [=] (Scalar value) {
 		RGBA rgba = rgbaMap(value);
 		return RGB(rgba[0], rgba[1], rgba[2]);
 	};
@@ -9,8 +9,8 @@ ColorMap<RGB, Scalar> rgbJet() {
 }
 
 template <class Scalar>
-ColorMap<RGBA, Scalar> rgbaJet() {
-	ColorMap<RGBA, Scalar> map = [] (Scalar value) {
+std::function<RGBA (Scalar)> rgbaJet() {
+	std::function<RGBA (Scalar)> map = [] (Scalar value) {
 		Scalar fourValue = 4.f * value;
 		Scalar red   = std::min(fourValue - 1.5, -fourValue + 4.5);
 		Scalar green = std::min(fourValue - 0.5, -fourValue + 3.5);
@@ -24,9 +24,9 @@ ColorMap<RGBA, Scalar> rgbaJet() {
 }
 
 template <class Scalar>
-ColorMap<HSV, Scalar> hsvJet() {
-	ColorMap<RGB, Scalar> rgbMap = rgbJet<Scalar>();
-	ColorMap<HSV, Scalar> map = [=] (Scalar value) {
+std::function<HSV (Scalar)> hsvJet() {
+	std::function<RGB (Scalar)> rgbMap = rgbJet<Scalar>();
+	std::function<HSV (Scalar)> map = [=] (Scalar value) {
 		RGB rgb = rgbMap(value);
 		return ColorConversion::rgb2hsv(rgb);
 	};
@@ -34,9 +34,9 @@ ColorMap<HSV, Scalar> hsvJet() {
 }
 
 template <class Scalar>
-ColorMap<HSVA, Scalar> hsvaJet() {
-	ColorMap<RGBA, Scalar> rgbaMap = rgbaJet<Scalar>();
-	ColorMap<HSVA, Scalar> map = [=] (Scalar value) {
+std::function<HSVA (Scalar)> hsvaJet() {
+	std::function<RGBA (Scalar)> rgbaMap = rgbaJet<Scalar>();
+	std::function<HSVA (Scalar)> map = [=] (Scalar value) {
 		RGBA rgba = rgbaMap(value);
 		return ColorConversion::rgba2hsva(rgba);
 	};
