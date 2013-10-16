@@ -11,6 +11,8 @@
 #include <pcl/search/pcl_search.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/principal_curvatures.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/keypoints/uniform_sampling.h>
 
 #include <Eigen/Dense>
 using Eigen::Vector3f;
