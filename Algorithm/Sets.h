@@ -43,6 +43,12 @@ template <class Container>
 Container setSymmetricDifference(const Container& container0, const Container& container1);
 
 template <class Container>
+void append(Container& container0, const Container& container1);
+
+template <class Container>
+Container append(const Container& container0, const Container& container1);
+
+template <class Container>
 void uniqueSubset(Container& container);
 
 template <class Container>

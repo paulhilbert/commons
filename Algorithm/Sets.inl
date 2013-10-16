@@ -80,7 +80,7 @@ inline void crop(Container& container, const IndexSet& indices) {
 }
 
 template <class Container>
-Container setUnion(const Container& container0, const Container& container1) {
+inline Container setUnion(const Container& container0, const Container& container1) {
 	Container result(container0.size()+container1.size());
 	auto newEnd = std::set_union(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
 	result.resize(std::distance(result.begin(), newEnd));
@@ -88,7 +88,7 @@ Container setUnion(const Container& container0, const Container& container1) {
 }
 
 template <class Container>
-Container setIntersection(const Container& container0, const Container& container1) {
+inline Container setIntersection(const Container& container0, const Container& container1) {
 	Container result(container0.size());
 	auto newEnd = std::set_intersection(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
 	result.resize(std::distance(result.begin(), newEnd));
@@ -96,7 +96,7 @@ Container setIntersection(const Container& container0, const Container& containe
 }
 
 template <class Container>
-Container setDifference(const Container& container0, const Container& container1) {
+inline Container setDifference(const Container& container0, const Container& container1) {
 	Container result(container0.size());
 	auto newEnd = std::set_difference(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
 	result.resize(std::distance(result.begin(), newEnd));
@@ -104,10 +104,22 @@ Container setDifference(const Container& container0, const Container& container1
 }
 
 template <class Container>
-Container setSymmetricDifference(const Container& container0, const Container& container1) {
+inline Container setSymmetricDifference(const Container& container0, const Container& container1) {
 	Container result(container0.size()+container1.size());
 	auto newEnd = std::set_symmetric_difference(container0.begin(), container0.end(), container1.begin(), container1.end(), result.begin());
 	result.resize(std::distance(result.begin(), newEnd));
+	return result;
+}
+
+template <class Container>
+inline void append(Container& container0, const Container& container1) {
+	container0.insert(container0.end(), container1.begin(), container1.end());
+}
+
+template <class Container>
+inline Container append(const Container& container0, const Container& container1) {
+	Container result(container0.begin(), container0.end());
+	append(result, container1);
 	return result;
 }
 
