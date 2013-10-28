@@ -39,8 +39,7 @@ std::vector<typename MeshAnalysis<MeshTraits>::Point> MeshAnalysis<MeshTraits>::
 
 	// sample
 	std::vector<Point> samples(numSamples);
-	RNG*  rng   = RNG::instance();
-	RNG01 rng01 = rng->uniform01Gen<Scalar>();
+	auto rng01 = RNG::uniform01Gen<Scalar>();
 	auto faceIds = MeshTraits::faceIdSet(mesh);
 	for (auto it = samples.begin(); it != samples.end(); ++it) {
 		// get random triangle using face areas as probability distribution
@@ -58,7 +57,7 @@ std::vector<typename MeshAnalysis<MeshTraits>::Point> MeshAnalysis<MeshTraits>::
 #ifdef USE_PCL
 template <class MeshTraits>
 template <class PointType>
-inline void MeshAnalysis<MeshTraits>::sampleOnSurface(const Mesh& mesh, unsigned int samplesPerSquareUnit, typename pcl::PointCloud<PointType>::Ptr cloud, PBar::Ptr bar) {
+inline void MeshAnalysis<MeshTraits>::sampleOnSurface(const Mesh& mesh, unsigned int samplesPerSquareUnit, typename pcl::PointCloud<PointType>::Ptr cloud, std::function<void (int done, int todo)> bar) {
 	// get cumulative face area histogram
 	auto hist = faceAreas(mesh);
 	std::partial_sum(hist.begin(), hist.end(), hist.begin());
@@ -68,8 +67,7 @@ inline void MeshAnalysis<MeshTraits>::sampleOnSurface(const Mesh& mesh, unsigned
 
 	// sample
 	cloud->resize(numSamples);
-	RNG*  rng   = RNG::instance();
-	RNG01 rng01 = rng->uniform01Gen<Scalar>();
+	auto rng01 = RNG::uniform01Gen<Scalar>();
 	auto faceIds = MeshTraits::faceIdSet(mesh);
 	unsigned int done = 0;
 	for (auto& p : *cloud) {
@@ -82,7 +80,7 @@ inline void MeshAnalysis<MeshTraits>::sampleOnSurface(const Mesh& mesh, unsigned
 		auto point = randomPointInTriangle(mesh, faceId, rng01);
 		p.getVector3fMap() = Vector3f(point[0], point[1], point[2]);
 		p.getNormalVector3fMap() = MeshTraits::faceNormal(mesh, faceId);
-		if (bar) bar->poll(++done, cloud->size());
+		if (bar) bar(++done, cloud->size());
 	}
 }
 #endif

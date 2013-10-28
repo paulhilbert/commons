@@ -11,8 +11,6 @@
 #include "../Random/RNG.h"
 using namespace Random;
 
-#include <IO/AbstractProgressBar.h>
-
 #include "CloudAnalysis.h"
 #include "BoundingBox.h"
 
@@ -36,8 +34,6 @@ class MeshAnalysis {
 		typedef FIdSet                           CC;
 		typedef std::vector<CC>                  CCs;
 
-		typedef IO::AbstractProgressBar          PBar;
-
 	public:
 		static Point vertexCOM(Mesh& mesh, unsigned int normalizeAfter = 0);
 		static CCs connectedComponents(Mesh& mesh);
@@ -45,14 +41,14 @@ class MeshAnalysis {
 		static std::vector<Point> sampleOnSurface(const Mesh& mesh, unsigned int samplesPerSquareUnit);
 #ifdef USE_PCL
 		template <class PointType>
-		static void sampleOnSurface(const Mesh& mesh, unsigned int samplesPerSquareUnit, typename pcl::PointCloud<PointType>::Ptr cloud, PBar::Ptr bar = PBar::Ptr());
+		static void sampleOnSurface(const Mesh& mesh, unsigned int samplesPerSquareUnit, typename pcl::PointCloud<PointType>::Ptr cloud, std::function<void (int done, int todo)> bar = nullptr);
 #endif
 
 		static Scalar faceArea(const Mesh& mesh, FId face);
 		static Scalar surfaceArea(const Mesh& mesh);
 
 	protected:
-		typedef typename RNG::Traits<Scalar>::Gen01  RNG01;
+		typedef typename RNG::Traits<Scalar>::Generator  RNG01;
 
 	protected:
 		static CC ccTraverse(Mesh& mesh, std::map<FId,bool>& done, FId start);
