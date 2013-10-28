@@ -1,4 +1,0 @@
-env = Environment(CCFLAGS = "-Wall -Wno-unused-local-typedefs -g -O3 -std=c++11 -fPIC -DUSE_BOOST_RANDOM", CPPPATH=['/usr/include/eigen3'])
-lib = env.Library('RNG', 'RNG.cpp')
-env.Install('/usr/local/lib/commons', lib)
-env.Alias('install', '/usr/local/lib/commons')

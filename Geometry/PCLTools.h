@@ -21,7 +21,6 @@ using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 
 #include <Algorithm/Sets.h>
-#include <IO/AbstractProgressBar.h>
 
 #include "Quadric.h"
 
@@ -51,7 +50,7 @@ class PCLTools {
 		typedef int                          Size;
 		typedef std::vector<int>             IdxSet;
 
-		typedef IO::AbstractProgressBar      PBar;
+		typedef std::function<void (int, int)>  PBar;
 
 	public:
 		PCLTools() = delete;
