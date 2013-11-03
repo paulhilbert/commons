@@ -23,8 +23,8 @@ class RNG {
 			typedef std::geometric_distribution<T> DistGeom;
 			typedef std::normal_distribution<T> DistNormal;
 
-			static T getUpperBound(T original, std::true_type is_float) { return original; }
-			static T getUpperBound(T original, std::false_type is_float) { return original-1; }
+			static T getUpperBound(T original, std::true_type) { return original; }
+			static T getUpperBound(T original, std::false_type) { return original-1; }
 
 			typedef std::function<T ()> Generator;
 		};

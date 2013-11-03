@@ -41,6 +41,7 @@ class PCLTools {
 		typedef pcl::PointCloud<PointT>      CloudType;
 		typedef pcl::search::Search<PointT>  SearchType;
 		typedef pcl::search::KdTree<PointT>  KdTreeType;
+		typedef pcl::search::Octree<PointT>  OctreeType;
 		typedef NeighborQuery<PointT>        NQ;
 		typedef Quadric<float, 2>            QuadricType;
 
@@ -56,6 +57,10 @@ class PCLTools {
 		PCLTools() = delete;
 
 		//static typename CloudType::Ptr loadPointCloud(fs::path cloudPath, std::string upAxis, double scale);
+
+		static IdxSet sampleUniform(typename CloudType::ConstPtr cloud, float leafSize, typename PCLTools::SearchType::Ptr search = nullptr);
+		static void crop(typename CloudType::Ptr cloud, const IdxSet& subset);
+		static void resample(typename CloudType::Ptr cloud, float leafSize);
 
 		static typename QuadricType::Ptr fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NQ& nq, Eigen::Matrix<float,3,3>* localBase = nullptr);
 		static float meanCurvature(typename CloudType::Ptr cloud, const NQ& nq, const PointT& pos, const IdxSet& subset = IdxSet());

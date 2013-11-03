@@ -55,6 +55,28 @@ typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::p
 */
 
 template <class PointT>
+inline typename PCLTools<PointT>::IdxSet PCLTools<PointT>::sampleUniform(typename CloudType::ConstPtr cloud, float leafSize, typename PCLTools<PointT>::SearchType::Ptr search) {
+	pcl::UniformSampling<PointT> us;
+	us.setInputCloud(cloud);
+	if (search) us.setSearchMethod(search);
+	us.setRadiusSearch(leafSize);
+	pcl::PointCloud<int> subset;
+	us.compute(subset);
+	std::sort(subset.points.begin (), subset.points.end ());
+	return IdxSet(subset.points.begin(), subset.points.end());
+}
+
+template <class PointT>
+inline void PCLTools<PointT>::crop(typename CloudType::Ptr cloud, const IdxSet& subset) {
+	Algorithm::removeIdx(*cloud, [&] (int idx) { return !std::binary_search(subset.begin(), subset.end(), idx); });
+}
+
+template <class PointT>
+inline void PCLTools<PointT>::resample(typename CloudType::Ptr cloud, float leafSize) {
+	PCLTools<PointT>::crop(cloud, PCLTools<PointT>::sampleUniform(cloud, leafSize));
+}
+
+template <class PointT>
 typename PCLTools<PointT>::QuadricType::Ptr PCLTools<PointT>::fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NeighborQuery<PointT>& nq, Eigen::Matrix<float,3,3>* localBase) {
 	Matrix3f transform;
 	if (localBase) {
