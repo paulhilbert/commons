@@ -1,46 +1,171 @@
-/*
 template <class PointT>
-typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::path cloudPath, std::string upAxis, double scale) {
-	if (cloudPath.extension() != ".pcd") return CloudType::Ptr();
-	CloudType::Ptr cloud(new CloudType());
-	if (pcl::io::loadPCDFile<Point>(cloudPath.string(), *cloud) == -1) {
-		return CloudType::Ptr();
-	}
+inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
+	if (cloudPath.extension() == ".pcd") return loadPointCloudFromPCD(cloudPath, colors);
+#ifdef USE_E57
+	if (cloudPath.extension() == ".e57") return loadPointCloudFromE57(cloudPath, colors);
+#endif // USE_E57
+	throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\". Unknown file extension.");
+}
 
+template <class PointT>
+inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloudFromPCD(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
+	typename CloudType::Ptr cloud(new CloudType());
+	if (pcl::io::loadPCDFile<PointT>(cloudPath.string(), *cloud) == -1) {
+		throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\"");
+	}
+	if (colors) {
+		colors.get().resize(cloud->size());
+		std::fill(colors.get().begin(), colors.get().end(), Vector4f(0.5f, 0.5f, 0.5f, 1.f));
+	}
+	return cloud;
+}
+
+#ifdef USE_E57
+template <class PointT>
+inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloudFromE57(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
+	try {
+		e57::Reader eReader(cloudPath.string());
+
+		int scanCount = eReader.GetData3DCount();
+		int imgCount = eReader.GetImage2DCount();
+
+		if (colors) colors.get().clear();
+
+		typename CloudType::Ptr cloud(new CloudType());
+		for (int scanIndex = 0; scanIndex < scanCount; ++scanIndex) {
+			e57::Data3D scanHeader;
+			eReader.ReadData3D(scanIndex, scanHeader);
+
+			Eigen::Vector4f translation(scanHeader.pose.translation.x, scanHeader.pose.translation.y, scanHeader.pose.translation.z, 0.f);
+			Eigen::Quaternionf rotation(scanHeader.pose.rotation.w, scanHeader.pose.rotation.x, scanHeader.pose.rotation.y, scanHeader.pose.rotation.z);
+
+			e57::Image2D imgHeader;
+			char* imgBuffer = nullptr;
+			std::function<Eigen::Vector2i (const Vector3f&)> project = nullptr;
+			e57::Image2DProjection proj;
+			fipImage* img = nullptr;
+			if (colors && scanIndex < imgCount) {
+				eReader.ReadImage2D(scanIndex, imgHeader);
+				e57::Image2DType type, maskType, visType;
+				int64_t w, h, size;
+				eReader.GetImage2DSizes(scanIndex, proj, type, w, h, size, maskType, visType);
+				imgBuffer = new char[size];
+				eReader.ReadImage2DData(scanIndex, proj, type, (void*)imgBuffer, 0, size);
+				fipMemoryIO memIO((BYTE*)imgBuffer, size);
+				img = new fipImage(FIT_BITMAP, w, h, 3);
+				img->loadFromMemory(memIO, type == e57::E57_JPEG_IMAGE ? FIF_JPEG : FIF_PNG);
+				if (proj == e57::E57_PINHOLE) {
+					e57::PinholeRepresentation rep = imgHeader.pinholeRepresentation;
+					project = [&] (const Vector3f& p)->Eigen::Vector2i {
+						if (std::abs(p[2]) < std::numeric_limits<float>::epsilon()) return Eigen::Vector2i(0, 0);
+						int x = rep.principalPointX - (p[0] / p[2]) * (rep.focalLength / rep.pixelWidth);
+						int y = rep.principalPointY - (p[1] / p[2]) * (rep.focalLength / rep.pixelHeight);
+						return Eigen::Vector2i(x, y);
+					};
+				} else if (proj == e57::E57_SPHERICAL) {
+					e57::SphericalRepresentation rep = imgHeader.sphericalRepresentation;
+					project = [&] (const Vector3f& p)->Eigen::Vector2i {
+						auto proj = p;//rotation * p + translation.head(3);
+						float r = proj.norm();
+						float theta = std::atan2(proj[1], proj[0]);
+						float phi = std::asin(proj[2] / r);
+						int x = rep.imageWidth / 2 - (theta / rep.pixelWidth);
+						int y = rep.imageHeight / 2 - (phi / rep.pixelHeight);
+						return Eigen::Vector2i(x, y);
+					};
+				} else if (proj == e57::E57_CYLINDRICAL) {
+				} else {
+				}
+			}
+
+			// get size info
+			int64_t nColumn = 0, nRow = 0, nPointsSize = 0, nGroupsSize = 0, nCounts = 0; bool bColumnIndex = 0;
+			eReader.GetData3DSizes( scanIndex, nRow, nColumn, nPointsSize, nGroupsSize, nCounts, bColumnIndex);
+
+			int64_t nSize = (nRow > 0) ? nRow : 1024;
+
+			double *xData = new double[nSize], *yData = new double[nSize], *zData = new double[nSize];//, *intensity = new double[nSize];
+
+			auto dataReader = eReader.SetUpData3DPointsData(scanIndex, nSize, xData, yData, zData, nullptr, nullptr);
+
+			unsigned long size = 0;
+			typename CloudType::Ptr scan(new CloudType());
+			while((size = dataReader.read()) > 0) {
+				for(unsigned long i = 0; i < size; i++) {
+					PointT p;
+					p.x = xData[i];
+					p.y = yData[i];
+					p.z = zData[i];
+					scan->push_back(p);
+					RGBQUAD col;
+					if (colors && imgBuffer && img && project) {
+						auto imgCoords = project(p.getVector3fMap());
+						img->getPixelColor(imgCoords[0], imgCoords[1], &col);
+						colors.get().push_back(Vector4f(static_cast<float>(col.rgbRed) / 255.f, static_cast<float>(col.rgbGreen) / 255.f, static_cast<float>(col.rgbBlue) / 255.f, 1.f));
+					}
+				}
+			}
+			dataReader.close();
+			scan->sensor_origin_ = translation;
+			pcl::transformPointCloud(*scan, *scan, translation.head(3), rotation);
+			cloud->insert(cloud->end(), scan->begin(), scan->end());
+
+			delete [] xData;
+			delete [] yData;
+			delete [] zData;
+
+			if (imgBuffer) {
+				delete [] imgBuffer;
+			}
+			if (img) {
+				delete img;
+			}
+		}
+		return cloud;
+	} catch (...) {
+		throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\"");
+	}
+}
+#endif // USE_E57
+
+template <class PointT>
+inline void PCLTools<PointT>::adjust(typename CloudType::Ptr cloud, std::string upAxis, float scale, bool recenter) {
 	if (scale == 1.f && upAxis == "Z") return;
-	// compute center
-	float cx = 0.f, cy = 0.f, cz = 0.f;	int i=0;
-	std::for_each(cloud->begin(), cloud->end(), [&] (Point& p) { 
-		cx *= i; cy *= i; cz *= i++;
-		cx += p.x; cy += p.y; cz += p.z;
-		cx /= static_cast<float>(i); cy /= static_cast<float>(i); cz /= static_cast<float>(i);
-	});
 
 	Eigen::Matrix4f tC;
-	tC << 1.f, 0.f, 0.f, -cx,
-	      0.f, 1.f, 0.f, -cy,
-	      0.f, 0.f, 1.f, -cz,
-			0.f, 0.f, 0.f, 1.f;
+	if (recenter) {
+		// compute center
+		float cx = 0.f, cy = 0.f, cz = 0.f;
+		int i=0;
+		std::for_each(cloud->begin(), cloud->end(), [&] (PointT& p) { 
+			cx *= i; cy *= i; cz *= i++;
+			cx += p.x; cy += p.y; cz += p.z;
+			cx /= static_cast<float>(i); cy /= static_cast<float>(i); cz /= static_cast<float>(i);
+		});
+		tC << 1.f, 0.f, 0.f, -cx,
+				0.f, 1.f, 0.f, -cy,
+				0.f, 0.f, 1.f, -cz,
+				0.f, 0.f, 0.f, 1.f;
+	} else {
+		tC = Matrix4f::Identity();
+	}
 
-	//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { p.x -= cx; p.y -= cy; p.z -= cz; });
 	Eigen::Matrix4f tR;
 	if (upAxis == "Y") {
 		tR << 1.f, 0.f,  0.f, 0.f,
 			   0.f, 0.f, -1.f, 0.f,
 				0.f, 1.f,  0.f, 0.f,
 				0.f, 0.f,  0.f, 1.f;
-		//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { float tmp = p.y; p.y = -p.z; p.z = tmp; });
 	} else if (upAxis == "X") {
 		tR << 0.f, 0.f, -1.f, 0.f,
 			   0.f, 1.f,  0.f, 0.f,
 				1.f, 0.f,  0.f, 0.f,
 				0.f, 0.f,  0.f, 1.f;
-		//std::for_each(cloud->begin(), cloud->end(), [&] (PointType& p) { float tmp = p.x; p.x = -p.z; p.z = tmp; });
 	} else if (upAxis == "Z") {
 		tR = Eigen::Matrix4f::Identity();
 	} else {
-		Log::warn("Unrecognized mesh orientation given, assuming Z axis.");
-		return;
+		// Unrecognized mesh orientation given, assuming Z axis
+		tR = Eigen::Matrix4f::Identity();
 	}
 
 	pcl::transformPointCloudWithNormals(*cloud, *cloud, tR*tC);
@@ -50,9 +175,7 @@ typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::p
 		tS.block<3,3>(0,0) *= scale;
 		pcl::transformPointCloud(*cloud, *cloud, tS);
 	}
-	return cloud;
 }
-*/
 
 template <class PointT>
 inline typename PCLTools<PointT>::IdxSet PCLTools<PointT>::sampleUniform(typename CloudType::ConstPtr cloud, float leafSize, typename PCLTools<PointT>::SearchType::Ptr search) {

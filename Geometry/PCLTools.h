@@ -3,8 +3,15 @@
 
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 #include <boost/variant.hpp>
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+using boost::optional;
+using boost::none;
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -13,6 +20,13 @@
 #include <pcl/features/principal_curvatures.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/keypoints/uniform_sampling.h>
+#include <pcl/common/transforms.h>
+
+#ifdef USE_E57
+#include <e57/E57Foundation.h>
+#include <e57/E57Simple.h>
+#include <FreeImagePlus.h>
+#endif // USE_E57
 
 #include <Eigen/Dense>
 using Eigen::Vector3f;
@@ -35,9 +49,6 @@ struct NeighborQuery {
 template <class PointT>
 class PCLTools {
 	public:
-		typedef std::shared_ptr<PCLTools> Ptr;
-		typedef std::weak_ptr<PCLTools>   WPtr;
-		
 		typedef pcl::PointCloud<PointT>      CloudType;
 		typedef pcl::search::Search<PointT>  SearchType;
 		typedef pcl::search::KdTree<PointT>  KdTreeType;
@@ -56,7 +67,13 @@ class PCLTools {
 	public:
 		PCLTools() = delete;
 
-		//static typename CloudType::Ptr loadPointCloud(fs::path cloudPath, std::string upAxis, double scale);
+		static typename CloudType::Ptr loadPointCloud(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
+		static typename CloudType::Ptr loadPointCloudFromPCD(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
+#ifdef USE_E57
+		static typename CloudType::Ptr loadPointCloudFromE57(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
+#endif // USE_E57
+
+		static void adjust(typename CloudType::Ptr cloud, std::string upAxis, float scale, bool recenter);
 
 		static IdxSet sampleUniform(typename CloudType::ConstPtr cloud, float leafSize, typename PCLTools::SearchType::Ptr search = nullptr);
 		static void crop(typename CloudType::Ptr cloud, const IdxSet& subset);
