@@ -1,6 +1,7 @@
 template <class PointT>
 inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
 	if (cloudPath.extension() == ".pcd") return loadPointCloudFromPCD(cloudPath, colors);
+	if (cloudPath.extension() == ".obj") return loadPointCloudFromOBJ(cloudPath, colors);
 #ifdef USE_E57
 	if (cloudPath.extension() == ".e57") return loadPointCloudFromE57(cloudPath, colors);
 #endif // USE_E57
@@ -13,6 +14,45 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 	if (pcl::io::loadPCDFile<PointT>(cloudPath.string(), *cloud) == -1) {
 		throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\"");
 	}
+	if (colors) {
+		colors.get().resize(cloud->size());
+		std::fill(colors.get().begin(), colors.get().end(), Vector4f(0.5f, 0.5f, 0.5f, 1.f));
+	}
+	return cloud;
+}
+
+template <class PointT>
+inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloudFromOBJ(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
+	typename CloudType::Ptr cloud(new CloudType());
+	std::ifstream in(cloudPath.string().c_str());
+	if (!in.good()) {
+		throw std::runtime_error("Bad input stream");
+	}
+
+	std::string line;
+	std::vector<std::tuple<float,float,float>> points, normals;
+	char type[3];
+	float v0, v1, v2;
+	std::string typeStr;
+	while (std::getline(in, line)) {
+		if (sscanf(line.c_str(), "%2s %f %f %f", type, &v0, &v1, &v2) == 4) {
+			typeStr = type;
+			if (typeStr == "v") {
+				points.push_back(std::make_tuple(v0,v1,v2));
+			} else if (typeStr == "vn") {
+				normals.push_back(std::make_tuple(v0,v1,v2));
+			}
+		}
+	}
+	in.close();
+
+	PointT p;
+	for (unsigned int i=0; i<points.size(); ++i) {
+		std::tie(p.x, p.y, p.z) = points[i];
+		std::tie(p.normal[0], p.normal[1], p.normal[2]) = normals[i];
+		cloud->push_back(p);
+	}
+
 	if (colors) {
 		colors.get().resize(cloud->size());
 		std::fill(colors.get().begin(), colors.get().end(), Vector4f(0.5f, 0.5f, 0.5f, 1.f));

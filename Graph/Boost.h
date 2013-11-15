@@ -6,10 +6,12 @@
 #include <functional>
 
 #include <Generic/Range.h>
+#include <Algorithm/Sets.h>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 
 #include <boost/serialization/access.hpp>
 
@@ -55,9 +57,10 @@ class Boost : public GraphBase<Type, NodeProp, EdgeProp, GraphProp> {
 		typedef std::pair<EdgeHandle, bool>                      EdgeAddResult;
 		typedef std::pair<NodeHandle, NodeHandle>                EdgeNodes;
 
-		typedef std::function<void (Boost&, NodeHandle)>         NodeVisitor;
-		typedef std::function<void (Boost&, EdgeHandle)>         EdgeVisitor;
-		typedef std::function<bool (Boost&, EdgeHandle)>         EdgePredicate;
+		typedef std::function<void (Boost&, NodeHandle)>              NodeVisitor;
+		typedef std::function<void (Boost&, EdgeHandle)>              EdgeVisitor;
+		typedef std::function<bool (Boost&, EdgeHandle)>              EdgePredicate;
+		typedef std::function<bool (Boost&, NodeHandle, NodeHandle)>  NodePairPredicate;
 
 		typedef std::vector<unsigned int>                        Coloring;
 		typedef std::vector<NodeHandle>                          Component;
@@ -70,13 +73,14 @@ class Boost : public GraphBase<Type, NodeProp, EdgeProp, GraphProp> {
 		NodeHandle     addNode();
 		EdgeAddResult  addEdge(NodeHandle src, NodeHandle tgt);
 
-		NodeRange      nodes();
-		EdgeRange      edges();
+		NodeRange      nodes() const;
+		EdgeRange      edges() const;
 
-		OutEdgeRange   outEdges(NodeHandle node);
-		NodeHandle     source(EdgeHandle edge);
-		NodeHandle     target(EdgeHandle edge);
-		EdgeNodes      nodes(EdgeHandle edge);
+		OutEdgeRange   outEdges(NodeHandle node) const;
+		EdgeHandles    outEdges(NodeHandles nodes) const;
+		NodeHandle     source(EdgeHandle edge) const;
+		NodeHandle     target(EdgeHandle edge) const;
+		EdgeNodes      nodes(EdgeHandle edge) const;
 
 		unsigned int   numNodes() const;
 		unsigned int   numEdges() const;
@@ -92,11 +96,36 @@ class Boost : public GraphBase<Type, NodeProp, EdgeProp, GraphProp> {
 		Components     connectedComponents();
 		EdgeHandles    edges(Component& component);
 
+		/**
+		 *  Performs a breadth-first-search on this graph.
+		 *
+		 *  @param start Node handle used as starting point.
+		 *  @param nodeVisitor Visitor that gets called everytime a node is discovered.
+		 *  @param edgeVisitor Predicate that gets called everytime an edge is discovered. Returning false cancels the corresponding path.
+		 */
+		void bfsSearch(NodeHandle start, NodeVisitor nodeVisitor = nullptr, NodePairPredicate edgeVisitor = nullptr);
+
 	protected:
 		// serialization
 		friend class boost::serialization::access;
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version);
+
+		struct BFSVisitor : public ::boost::default_bfs_visitor {
+			BFSVisitor(NodeVisitor nodeVisitor, NodePairPredicate edgeVisitor, Boost* graph);
+			void examine_vertex(NodeHandle n, Boost g);
+			void examine_edge(EdgeHandle e, Boost g);
+
+			NodeVisitor                 m_nodeVisitor;
+			NodePairPredicate           m_edgeVisitor;
+
+			Boost*                      m_graph;
+
+			NodeHandle                  m_lastNode;
+			std::map<NodeHandle, bool>  m_valid;
+			std::map<NodeHandle, bool>  m_visited;
+
+		};
 };
 
 } // Graph

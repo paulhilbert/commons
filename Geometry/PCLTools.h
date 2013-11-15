@@ -69,6 +69,7 @@ class PCLTools {
 
 		static typename CloudType::Ptr loadPointCloud(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
 		static typename CloudType::Ptr loadPointCloudFromPCD(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
+		static typename CloudType::Ptr loadPointCloudFromOBJ(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
 #ifdef USE_E57
 		static typename CloudType::Ptr loadPointCloudFromE57(fs::path cloudPath, optional<std::vector<Vector4f>&> colors = none);
 #endif // USE_E57
