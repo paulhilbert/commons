@@ -49,7 +49,9 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 	PointT p;
 	for (unsigned int i=0; i<points.size(); ++i) {
 		std::tie(p.x, p.y, p.z) = points[i];
+#ifndef OMIT_NORMALS
 		std::tie(p.normal[0], p.normal[1], p.normal[2]) = normals[i];
+#endif
 		cloud->push_back(p);
 	}
 

@@ -6,6 +6,14 @@
 #include <vector>
 #include <memory>
 
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+using boost::optional;
+using boost::none;
+
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
 #include "../IO/Log.h"
 using namespace IO;
 
@@ -37,7 +45,7 @@ class Computation {
 	public:
 		virtual ~Computation() {}
 
-		static Ptr fromSourceFiles(const std::vector<std::string>& paths) {
+		static Ptr fromSourceFiles(const std::vector<std::string>& paths, optional<std::string> sourceRoot = none) {
 			Computation::Ptr self(new Computation());
 
 			cl_int err;
@@ -65,9 +73,11 @@ class Computation {
 			cl::Program::Sources sources;
 			std::ifstream in;
 			for (const auto& p : paths) {
-				in.open(p.c_str());
+				fs::path fullPath(sourceRoot ? sourceRoot.get() : p);
+				if (sourceRoot) fullPath /= p;
+				in.open(fullPath.string().c_str());
 				if (!in.good()) {
-					Log::error("Could not load file \""+p+"\".");
+					Log::error("Could not load file \""+fullPath.string()+"\".");
 					return Ptr();
 				}
 				std::istreambuf_iterator<char> begin(in), end;
@@ -80,8 +90,9 @@ class Computation {
 			// program
 			self->m_program = ProgramPtr(new cl::Program(*(self->m_context), sources, &err));
 			if (!checkCreateProgram(err))	return Ptr();
-
-			err = self->m_program->build(*(self->m_devices));
+			
+			std::string buildOptions = sourceRoot ? "-I" + sourceRoot.get() + "" : "";
+			err = self->m_program->build(*(self->m_devices), sourceRoot ? buildOptions.c_str() : nullptr);
 			if (!checkBuildProgram(err, self->m_devices, self->m_program)) return Ptr();
 
 			self->m_queue = QueuePtr(new cl::CommandQueue(*(self->m_context), (*(self->m_devices))[0], 0, &err));
