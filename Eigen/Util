@@ -14,6 +14,9 @@ Matrix<T,3,1> right(const Matrix<T,3,1>& ref);
 template <class Scalar, int Rows, int Cols>
 void clamp(Matrix<Scalar, Rows, Cols>& m, Scalar min, Scalar max);
 
+template <class Scalar, int Rows, int Cols>
+void gramSchmidt(Matrix<Scalar, Rows, Cols>& m, bool normalize = false);
+
 #include "Util.inl"
 
 } // Eigen

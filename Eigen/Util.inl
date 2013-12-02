@@ -18,3 +18,14 @@ template <class Scalar, int Rows, int Cols>
 inline void clamp(Matrix<Scalar, Rows, Cols>& m, Scalar min, Scalar max) {
 	m.unaryExpr([&](Scalar value) { return value > max ? max : (value < min ? min : value); });
 }
+
+template <class Scalar, int Rows, int Cols>
+void gramSchmidt(Matrix<Scalar, Rows, Cols>& m, bool normalize) {
+	if (normalize) for (int c = 0; c < Cols; ++c) m.col(c).normalize();
+	for (int c = 1; c < Cols; ++c) {
+		for (int i = 0; i < c; ++i) {
+			m.col(c) -= m.col(i).dot(m.col(c)) * m.col(i);
+			m.col(c).normalize();
+		}
+	}
+}
