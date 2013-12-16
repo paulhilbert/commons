@@ -45,7 +45,7 @@ class Computation {
 	public:
 		virtual ~Computation() {}
 
-		static Ptr fromSourceFiles(const std::vector<std::string>& paths, optional<std::string> sourceRoot = none) {
+		static Ptr fromSourceFiles(const std::vector<std::string>& paths, optional<std::string> sourceRoot = none, std::string additionalOptions = "") {
 			Computation::Ptr self(new Computation());
 
 			cl_int err;
@@ -91,8 +91,9 @@ class Computation {
 			self->m_program = ProgramPtr(new cl::Program(*(self->m_context), sources, &err));
 			if (!checkCreateProgram(err))	return Ptr();
 			
-			std::string buildOptions = sourceRoot ? "-I" + sourceRoot.get() + "" : "";
-			err = self->m_program->build(*(self->m_devices), sourceRoot ? buildOptions.c_str() : nullptr);
+			std::string buildOptions = sourceRoot ? "-I" + sourceRoot.get() : "";
+			if (additionalOptions != "") buildOptions += " " + additionalOptions;
+			err = self->m_program->build(*(self->m_devices), buildOptions != "" ? buildOptions.c_str() : nullptr);
 			if (!checkBuildProgram(err, self->m_devices, self->m_program)) return Ptr();
 
 			self->m_queue = QueuePtr(new cl::CommandQueue(*(self->m_context), (*(self->m_devices))[0], 0, &err));

@@ -4,6 +4,7 @@
 #include <memory>
 #include <tuple>
 #include <functional>
+#include <type_traits>
 
 #include <Generic/Range.h>
 #include <Algorithm/Sets.h>
@@ -25,46 +26,48 @@ struct BiDirTag { typedef ::boost::bidirectionalS type; };
 typedef ::boost::no_property NullProp;
 
 // shortener t'defs
-template <class Type, class NodeProp, class EdgeProp, class GraphProp>
-using GraphBase = ::boost::adjacency_list<boost::vecS, boost::vecS, typename Type::type, NodeProp, EdgeProp, GraphProp>;
+template <bool multiEdge>
+using OutEdgeListType = typename std::conditional<multiEdge, boost::vecS, boost::setS>::type;
+template <class Type, bool multiEdge, class NodeProp, class EdgeProp, class GraphProp>
+using GraphBase = ::boost::adjacency_list<OutEdgeListType<multiEdge>, boost::vecS, typename Type::type, NodeProp, EdgeProp, GraphProp>;
 template <class Base>
 using GraphTraits = ::boost::graph_traits<Base>;
 
 
 
-template <class Type, class NodeProp = NullProp, class EdgeProp = NullProp, class GraphProp = NullProp>
-class Boost : public GraphBase<Type, NodeProp, EdgeProp, GraphProp> {
+template <class Type, bool multiEdge, class NodeProp = NullProp, class EdgeProp = NullProp, class GraphProp = NullProp>
+class Boost : public GraphBase<Type, multiEdge, NodeProp, EdgeProp, GraphProp> {
 	public:
 		typedef std::shared_ptr<Boost> Ptr;
 		typedef std::weak_ptr<Boost>   WPtr;
 
-		typedef GraphBase<Type, NodeProp, EdgeProp, GraphProp>   Base;
-		typedef GraphTraits<Base>                                Traits;
+		typedef GraphBase<Type, multiEdge, NodeProp, EdgeProp, GraphProp>   Base;
+		typedef GraphTraits<Base>                                           Traits;
 
-		typedef typename Traits::vertex_descriptor               NodeHandle;
-		typedef typename Traits::edge_descriptor                 EdgeHandle;
+		typedef typename Traits::vertex_descriptor                          NodeHandle;
+		typedef typename Traits::edge_descriptor                            EdgeHandle;
 
-		typedef std::vector<NodeHandle>                          NodeHandles;
-		typedef std::vector<EdgeHandle>                          EdgeHandles;
+		typedef std::vector<NodeHandle>                                     NodeHandles;
+		typedef std::vector<EdgeHandle>                                     EdgeHandles;
 
-		typedef typename Traits::vertex_iterator                 NodeIter;
-		typedef typename Traits::edge_iterator                   EdgeIter;
-		typedef typename Traits::out_edge_iterator               OutEdgeIter;
-		typedef Generic::Range<NodeIter>                         NodeRange;
-		typedef Generic::Range<EdgeIter>                         EdgeRange;
-		typedef Generic::Range<OutEdgeIter>                      OutEdgeRange;
+		typedef typename Traits::vertex_iterator                            NodeIter;
+		typedef typename Traits::edge_iterator                              EdgeIter;
+		typedef typename Traits::out_edge_iterator                          OutEdgeIter;
+		typedef Generic::Range<NodeIter>                                    NodeRange;
+		typedef Generic::Range<EdgeIter>                                    EdgeRange;
+		typedef Generic::Range<OutEdgeIter>                                 OutEdgeRange;
 
-		typedef std::pair<EdgeHandle, bool>                      EdgeAddResult;
-		typedef std::pair<NodeHandle, NodeHandle>                EdgeNodes;
+		typedef std::pair<EdgeHandle, bool>                                 EdgeAddResult;
+		typedef std::pair<NodeHandle, NodeHandle>                           EdgeNodes;
 
-		typedef std::function<void (Boost&, NodeHandle)>              NodeVisitor;
-		typedef std::function<void (Boost&, EdgeHandle)>              EdgeVisitor;
-		typedef std::function<bool (Boost&, EdgeHandle)>              EdgePredicate;
-		typedef std::function<bool (Boost&, NodeHandle, NodeHandle)>  NodePairPredicate;
+		typedef std::function<void (Boost&, NodeHandle)>                    NodeVisitor;
+		typedef std::function<void (Boost&, EdgeHandle)>                    EdgeVisitor;
+		typedef std::function<bool (Boost&, EdgeHandle)>                    EdgePredicate;
+		typedef std::function<bool (Boost&, NodeHandle, NodeHandle)>        NodePairPredicate;
 
-		typedef std::vector<unsigned int>                        Coloring;
-		typedef std::vector<NodeHandle>                          Component;
-		typedef std::vector<Component>                           Components;
+		typedef std::vector<unsigned int>                                   Coloring;
+		typedef std::vector<NodeHandle>                                     Component;
+		typedef std::vector<Component>                                      Components;
 
 	public:
 		Boost();

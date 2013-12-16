@@ -1,9 +1,10 @@
 template <class PointT>
 inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointCloud(fs::path cloudPath, optional<std::vector<Vector4f>&> colors) {
-	if (cloudPath.extension() == ".pcd") return loadPointCloudFromPCD(cloudPath, colors);
-	if (cloudPath.extension() == ".obj") return loadPointCloudFromOBJ(cloudPath, colors);
+	std::string extension = cloudPath.extension().string();
+	if (extension == ".pcd") return loadPointCloudFromPCD(cloudPath, colors);
+	if (extension == ".obj") return loadPointCloudFromOBJ(cloudPath, colors);
 #ifdef USE_E57
-	if (cloudPath.extension() == ".e57") return loadPointCloudFromE57(cloudPath, colors);
+	if (extension == ".e57") return loadPointCloudFromE57(cloudPath, colors);
 #endif // USE_E57
 	throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\". Unknown file extension.");
 }
@@ -17,6 +18,13 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 	if (colors) {
 		colors.get().resize(cloud->size());
 		std::fill(colors.get().begin(), colors.get().end(), Vector4f(0.5f, 0.5f, 0.5f, 1.f));
+	}
+	unsigned int pointCount = cloud->size();
+	std::vector<int> indices;
+	pcl::removeNaNFromPointCloud(*cloud, *cloud, indices);
+	//pcl::removeNaNNormalsFromPointCloud(*cloud, *cloud, indices);
+	if (cloud->size() != pointCount) {
+		std::cout << "Dropped " << (cloud->size() - pointCount) << " points due to NaN values." << "\n";
 	}
 	return cloud;
 }
@@ -58,6 +66,14 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 	if (colors) {
 		colors.get().resize(cloud->size());
 		std::fill(colors.get().begin(), colors.get().end(), Vector4f(0.5f, 0.5f, 0.5f, 1.f));
+	}
+
+	unsigned int pointCount = cloud->size();
+	std::vector<int> indices;
+	pcl::removeNaNFromPointCloud(*cloud, *cloud, indices);
+	//pcl::removeNaNNormalsFromPointCloud(*cloud, *cloud, indices);
+	if (cloud->size() != pointCount) {
+		std::cout << "Dropped " << (cloud->size() - pointCount) << " points due to NaN values." << "\n";
 	}
 	return cloud;
 }
@@ -163,6 +179,15 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 				delete img;
 			}
 		}
+
+
+		unsigned int pointCount = cloud->size();
+		std::vector<int> indices;
+		pcl::removeNaNFromPointCloud(*cloud, *cloud, indices);
+		//pcl::removeNaNNormalsFromPointCloud(*cloud, *cloud, indices);
+		if (cloud->size() != pointCount) {
+			std::cout << "Dropped " << (cloud->size() - pointCount) << " points due to NaN values." << "\n";
+		}
 		return cloud;
 	} catch (...) {
 		throw std::runtime_error("Could not load point cloud \""+cloudPath.string()+"\"");
@@ -172,7 +197,7 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 
 template <class PointT>
 inline void PCLTools<PointT>::adjust(typename CloudType::Ptr cloud, std::string upAxis, float scale, bool recenter) {
-	if (scale == 1.f && upAxis == "Z") return;
+	if (scale == 1.f && upAxis == "Z" && !recenter) return;
 
 	Eigen::Matrix4f tC;
 	if (recenter) {

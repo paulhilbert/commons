@@ -19,6 +19,7 @@ using boost::none;
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/principal_curvatures.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/filters/filter.h>
 #include <pcl/keypoints/uniform_sampling.h>
 #include <pcl/common/transforms.h>
 
