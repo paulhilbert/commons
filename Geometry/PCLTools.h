@@ -81,6 +81,8 @@ class PCLTools {
 		static void crop(typename CloudType::Ptr cloud, const IdxSet& subset);
 		static void resample(typename CloudType::Ptr cloud, float leafSize);
 
+		static float resolution(typename CloudType::ConstPtr cloud, typename SearchType::ConstPtr search);
+
 		static typename QuadricType::Ptr fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NQ& nq, Eigen::Matrix<float,3,3>* localBase = nullptr);
 		static float meanCurvature(typename CloudType::Ptr cloud, const NQ& nq, const PointT& pos, const IdxSet& subset = IdxSet());
 		static Points getNeighbors(typename CloudType::ConstPtr cloud, const PointT& pos, const NQ& nq);

@@ -22,7 +22,7 @@ inline typename PCLTools<PointT>::CloudType::Ptr PCLTools<PointT>::loadPointClou
 	unsigned int pointCount = cloud->size();
 	std::vector<int> indices;
 	pcl::removeNaNFromPointCloud(*cloud, *cloud, indices);
-	//pcl::removeNaNNormalsFromPointCloud(*cloud, *cloud, indices);
+	pcl::removeNaNNormalsFromPointCloud(*cloud, *cloud, indices);
 	if (cloud->size() != pointCount) {
 		std::cout << "Dropped " << (cloud->size() - pointCount) << " points due to NaN values." << "\n";
 	}
@@ -204,7 +204,7 @@ inline void PCLTools<PointT>::adjust(typename CloudType::Ptr cloud, std::string 
 		// compute center
 		float cx = 0.f, cy = 0.f, cz = 0.f;
 		int i=0;
-		std::for_each(cloud->begin(), cloud->end(), [&] (PointT& p) { 
+		std::for_each(cloud->begin(), cloud->end(), [&] (PointT& p) {
 			cx *= i; cy *= i; cz *= i++;
 			cx += p.x; cy += p.y; cz += p.z;
 			cx /= static_cast<float>(i); cy /= static_cast<float>(i); cz /= static_cast<float>(i);
@@ -267,6 +267,19 @@ inline void PCLTools<PointT>::resample(typename CloudType::Ptr cloud, float leaf
 }
 
 template <class PointT>
+inline float PCLTools<PointT>::resolution(typename CloudType::ConstPtr cloud, typename SearchType::ConstPtr search) {
+	std::vector<int> indices(2);
+	std::vector<float> sqrDists(2), dists(cloud->size());
+	int idx = 0;
+	for (const auto& p : *cloud) {
+		search->nearestKSearch(p, 2, indices, sqrDists);
+		dists[idx++] = sqrt(sqrDists[1]);
+	}
+	std::sort(dists.begin(), dists.end());
+	return dists[dists.size() / 2];
+}
+
+template <class PointT>
 typename PCLTools<PointT>::QuadricType::Ptr PCLTools<PointT>::fitQuadric(typename CloudType::ConstPtr cloud, const PointT& pos, NeighborQuery<PointT>& nq, Eigen::Matrix<float,3,3>* localBase) {
 	Matrix3f transform;
 	if (localBase) {
@@ -279,8 +292,8 @@ typename PCLTools<PointT>::QuadricType::Ptr PCLTools<PointT>::fitQuadric(typenam
 	}
 	Vector3f params = localQuadricParams(cloud, nq, pos, transform);
 	typename QuadricType::AMat Q;
-	Q << params[0], 0.5f*params[2], 0.f, 
-	0.5f*params[2], params[1], 0.f, 
+	Q << params[0], 0.5f*params[2], 0.f,
+	0.5f*params[2], params[1], 0.f,
 	0.f, 0.f, 0.f;
 	typename QuadricType::Ptr quadric(new QuadricType(Q, QuadricType::AVec::Zero(), 0.f));
 	return quadric;
